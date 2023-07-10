@@ -30,6 +30,22 @@ def get_json_filename(fpath):
     if path.exists(fpath + ".JSON"):
         return fpath + ".JSON"
     pre, ext = path.splitext(fpath)
+    # Live Photo
+    if ext == ".MP4":
+        if path.exists(pre + ".HEIC"):
+            return get_json_filename(pre + ".HEIC")
+        if path.exists(pre + ".JPG"):
+            return get_json_filename(pre + ".JPG")
+        if path.exists(pre + ".jpg"):
+            return get_json_filename(pre + ".jpg")
+        if path.exists(pre + ".jpeg"):
+            return get_json_filename(pre + ".jpeg")
+    # Strange Case
+    match = re.search(r'\((\d+)\)', pre)
+    if match is not None:
+        num = int(match.group(1))
+        if path.exists(pre.split('(')[0] + ext + "(" + str(num) + ")" + ".json"):
+            return pre.split('(')[0] + ext + "(" + str(num) + ")" + ".json"
     if path.exists(pre + ".json"):
         return pre + ".json"
     if path.exists(pre + ".JSON"):
@@ -44,7 +60,7 @@ def get_new_datetime(fpath):
     json_fname = get_json_filename(fpath)
     if not json_fname:
         return None
-    with open(json_fname) as jf:
+    with open(json_fname, encoding='UTF-8') as jf:
         try:
             timestamp = json.load(jf)["photoTakenTime"]["timestamp"]
             return datetime.fromtimestamp(float(timestamp))
@@ -53,24 +69,24 @@ def get_new_datetime(fpath):
 
 
 def update_datetime(fpath):
-    exif_dict = piexif.load(fpath)
-    original_datetime = exif_dict["Exif"].get(DATETIMEORIGINAL)
-    if original_datetime is not None:
-        lprint("%s: Keeping at %s" % (fpath, original_datetime))
-        return
+    # exif_dict = piexif.load(fpath)
+    # original_datetime = exif_dict["Exif"].get(DATETIMEORIGINAL)
+    # if original_datetime is not None:
+        # lprint("%s: Keeping at %s" % (fpath, original_datetime))
+        # return
     new_datetime = get_new_datetime(fpath)
     if not new_datetime:
         lprint("%s: No timestamp found" % fpath)
         return
     lprint("%s: Updating %s" % (fpath, new_datetime))
-    exif_dict["Exif"][DATETIMEORIGINAL] = new_datetime.strftime("%Y:%m:%d %H:%M:%S")
-    piexif.insert(piexif.dump(exif_dict), fpath)
-
+    # exif_dict["Exif"][DATETIMEORIGINAL] = new_datetime.strftime("%Y:%m:%d %H:%M:%S")
+    # piexif.insert(piexif.dump(exif_dict), fpath)
+    os.utime(fpath, (int(new_datetime.timestamp()), int(new_datetime.timestamp())))
 
 def recursively_operate(target, operation):
     for root, dirs, files in os.walk(target):
         for name in files:
-            if name.lower().endswith("jpg") or name.lower().endswith("jpeg"):
+            if True or name.lower().endswith("jpg") or name.lower().endswith("jpeg"):
                 try:
                     operation(path.join(root, name))
                 except Exception as e:
@@ -86,8 +102,9 @@ def main(target, operation, recursive):
         return
     if path.isfile(target):
         if not target.lower().endswith("jpg") and not target.lower().endswith("jpeg"):
-            print("only works for JPGs")
-            return
+            pass
+            # print("only works for JPGs")
+            # return
         operation(target)
         return
     print("target is neither file nor directory")
