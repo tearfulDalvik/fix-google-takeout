@@ -1,5 +1,7 @@
 # fix-google-takeout
 
+Compared to the original repo, this repo supports Live Photo, changes Last Modified Time instead of exif, and supports all formats.
+
 ## Warning
 Use at your own risk. Backup your photos. 
 
