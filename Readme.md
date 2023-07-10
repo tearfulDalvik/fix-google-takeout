@@ -10,9 +10,7 @@ Google takeout (https://takeout.google.com/settings/takeout) for photos mangles 
 Prerequisites: python3
 
 ```
-git clone git@github.com:xmonkee/fix-google-takeout.git
-cd fix-google-takeout
-make
+pip install -r requirements.txt
 ```
 
 ## Execution
